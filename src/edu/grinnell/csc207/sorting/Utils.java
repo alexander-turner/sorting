@@ -11,10 +11,19 @@ import java.util.Random;
  * are designed to help with testing or experiments.
  *
  * @author Samuel A. Rebelsky
- * @author Your Name Here
+ * @author Alex Turner '16
  */
 class Utils {
 
+    // +--------+---------------------------------------------------
+    // | Fields |
+    // +--------+
+    
+    /**
+     * A counter to track the number of swaps.
+     */
+    static int counter = 0;
+    
     // +---------------+---------------------------------------------------
     // | Static Fields |
     // +---------------+
@@ -43,7 +52,7 @@ class Utils {
      *    merged is a permutation of the concatenation of a1 and a2.
      */
     public static <T> T[] merge(Comparator<T> order, T[] a1, T[] a2) {
-         return merge(order, a1, 0, a1.length, a2, 0, a2.length);
+	return merge(order, a1, 0, a1.length, a2, 0, a2.length);
     } // merge(Comparator<T>, T[], T[])
 
     /**
@@ -61,39 +70,62 @@ class Utils {
      * @post
      *    merged is a permutation of the concatenation of the given 
      *    subarrays of a1 and a2.
+     * @invariant 
+     *    sorted(merged, order).
+     *    lb1 <= a1Index, lb2 <= a2Index.
+     *    a1Index and a2Index track the first unmerged index for their
+     *     respective arrays.
      */
+    @SuppressWarnings({"unchecked"})
     public static <T> T[] merge(Comparator<T> order, T[] a1, int lb1, 
-            int ub1, T[] a2, int lb2, int ub2) {
-        // STUB
-        return null;
+	    int ub1, T[] a2, int lb2, int ub2) {
+	// With help from Sam Rebelsky.
+	T[] merged = (T[]) new Object[ub2-lb2 + ub1-lb1];
+	int a1Index = lb1, a2Index = lb2;
+
+	for(int i = 0; i < ub2+ub1-lb2-lb1; i++, counter++) {
+	    if(a1Index == ub1) {
+		merged[i] = a2[a2Index++];
+	    } else if (a2Index == ub2) {
+		merged[i] = a1[a1Index++];
+	    } else {
+		if(order.compare(a1[a1Index],a2[a2Index]) <= 0) {
+		    merged[i] = a1[a1Index++];
+		} else {
+		    merged[i] = a2[a2Index++];
+		} // if / else
+	    } // else
+	} // for
+
+	return merged;
     } // merge(Comparator<T>, T[], int, int, T[], int, int)
 
     /**
      * "Randomly" permute an array in place.
      */
     public static <T> T[] permute(T[] values) {
-        for (int i = 0; i < values.length; i++) {
-            swap(values, i, generator.nextInt(values.length));
-        } // for
-        return values;
+	for (int i = 0; i < values.length; i++) {
+	    swap(values, i, generator.nextInt(values.length));
+	} // for
+	return values;
     } // permute(T)
 
     /**
      * Generate a "random" sorted array of integers of size n.
      */
     public static Integer[] randomSortedInts(int n) {
-        if (n == 0) {
-            return new Integer[0];
-        }
+	if (n == 0) {
+	    return new Integer[0];
+	}
 	Integer[] values = new Integer[n];
-        // Start with a negative number so that we have a mix
-        values[0] = generator.nextInt(10) - n;
-        // Add remaining values.  We use a random increment between
-        // 0 and 3 so that there are some duplicates and some gaps.
-        for (int i = 1; i < n; i++) {
-            values[i] = values[i-1] + generator.nextInt(4);
-        } // for
-        return values;
+	// Start with a negative number so that we have a mix
+	values[0] = generator.nextInt(10) - n;
+	// Add remaining values.  We use a random increment between
+	// 0 and 3 so that there are some duplicates and some gaps.
+	for (int i = 1; i < n; i++) {
+	    values[i] = values[i-1] + generator.nextInt(4);
+	} // for
+	return values;
     } // randomSortedInts
 
     /**
@@ -109,13 +141,13 @@ class Utils {
      * @pre 0 <= u <= values.length
      */
     public static <T> boolean sorted(T[] values, Comparator<T> order, 
-            int l, int u) {
-        for (int i = u-1; i > l; i--) {
-            if (order.compare(values[i-1], values[i]) > 0)
-                return false;
-        } // for
-        // At this point, we've checked every pair.  It must be sorted
-        return true;
+	    int l, int u) {
+	for (int i = u-1; i > l; i--) {
+	    if (order.compare(values[i-1], values[i]) > 0)
+		return false;
+	} // for
+	// At this point, we've checked every pair.  It must be sorted
+	return true;
     } // sorted
 
     /**
@@ -123,11 +155,11 @@ class Utils {
      *
      * @param values, the array.
      * @param order, the comparator that determines the ordering.
-     * @return true if the subarray is ordered, false otherwise
+     * @return true if the array is ordered, false otherwise
      * @pre order can be applied to any two values in the array.
      */
     public static <T> boolean sorted(T[] values, Comparator<T> order) {
-        return sorted(values, order, 0, values.length);
+	return sorted(values, order, 0, values.length);
     } // sorted(T[], Comparator<T>)
 
     /**
@@ -141,83 +173,104 @@ class Utils {
      * @pre b = values[j]
      * @post values[i] = b
      * @post values[j] = a
+     * @post increments counter.
      */
     public static <T> void swap(T[] values, int i, int j) {
-        T tmp = values[i];
-        values[i] = values[j];
-        values[j] = tmp;
+	T tmp = values[i];
+	values[i] = values[j];
+	values[j] = tmp;
+	counter++;
     } // swap(T[], int, int)
+    
+    /**
+     * Find the number of swaps performed.
+     * @return counter
+     */
+    public static int getCounter() {
+	return counter;
+    } // getCounter()
+    
+    /**
+     * Set the swap counter.
+     * @post counter=val.
+     */
+    public static void setCounter(int val) {
+	counter = val;
+    } // setCounter(int)
 
     // +-------------+-----------------------------------------------------
-    // | Expermients |
+    // | Experiments |
     // +-------------+
 
     /**
      * A simple experiment in permutations.
      */
     public static <T> void permutationExperiment(PrintWriter pen, 
-            Sorter<T> sorter, Comparator<T> compare, T[] sorted) {
-        T[] values = sorted.clone();
-        permute(values);
-        checkSorting(pen, sorted, values, sorter.sort(values, compare));
+	    Sorter<T> sorter, Comparator<T> compare, T[] sorted) {
+	setCounter(0);
+	T[] values = sorted.clone();
+	permute(values);
+	checkSorting(pen, sorted, values, sorter.sort(values, compare));
+	System.out.println("n=" + values.length + ": " + getCounter() + " swaps performed.");
     } // permutationExperiment(PrintWriter, Sorter<T>, Comparator<T>
 
     /**
      * Check the result of sorting.
      */
     public static <T> void checkSorting(PrintWriter pen, T[] sorted, T[] values, T[] resorted) {
-        // Print a quick prefix so that we can see whether or not the
-        // sort worked.
-        if (Arrays.equals(sorted,resorted)) {
-             pen.print("OK:  ");
-        } else {
-             pen.print("BAD: ");
-        } // if the sorted array does not equal the original array.
+	// Print a quick prefix so that we can see whether or not the
+	// sort worked.
+	if (Arrays.equals(sorted,resorted)) {
+	    pen.print("OK:  ");
+	} else {
+	    pen.print("BAD: ");
+	} // if the sorted array does not equal the original array.
 
-        // Print the transformation for folks who like to look.
-        pen.println("sort(" + Arrays.toString(values) + ") => ");
-        pen.println("          " + Arrays.toString(resorted));
+	// Print the transformation for folks who like to look.
+	pen.println("sort(" + Arrays.toString(values) + ") => ");
+	pen.println("          " + Arrays.toString(resorted));
     } // checkSorting
 
     /**
      * Run some experiments using an integer sorter.
      */
     public static void iExperiments(Sorter<Integer> sorter) {
-         PrintWriter pen = new PrintWriter(System.out, true);
-         Integer[] vals1 = new Integer[] { 1, 2, 2, 2, 4, 5, 7, 7, 11, 13 };
-         
-         // A case that's proven problematic
-         Integer[] vals2 = new Integer[] { 1, 1, 2, 3, 4, 5, 7, 9, 11, 13, 13, 0 };
-         checkSorting(pen, 
-        	 new Integer[] { 0, 1, 1, 2, 3, 4, 5, 7, 9, 11, 13, 13 },
-        	 vals2,
-        	 sorter.sort(vals2, StandardIntegerComparator.comparator));
-        	 
-         // Five random permutation experiments seems like enough
-         for (int i = 0; i < 5; i++) {
-             permutationExperiment(pen, sorter, 
-                     StandardIntegerComparator.comparator, vals1);
-         } // for
+	PrintWriter pen = new PrintWriter(System.out, true);
+	Integer[] vals1 = new Integer[] { 1, 2, 2, 2, 4, 5, 7, 7, 11, 13 };
 
-         // A permutation experiment with different sizes
-         for (int i = 1; i < 5; i++) {
-             permutationExperiment(pen, sorter, 
-                     StandardIntegerComparator.comparator,
-                     randomSortedInts(i*10));
-         } // for
+	// A case that's proven problematic
+	Integer[] vals2 = new Integer[] { 1, 1, 2, 3, 4, 5, 7, 9, 11, 13, 13, 0 };
+	
+	checkSorting(pen, 
+		new Integer[] { 0, 1, 1, 2, 3, 4, 5, 7, 9, 11, 13, 13 },
+		vals2,
+		sorter.sort(vals2, StandardIntegerComparator.comparator));
+
+	// Five random permutation experiments seems like enough
+	for (int i = 0; i < 5; i++) {
+	    permutationExperiment(pen, sorter, 
+		    StandardIntegerComparator.comparator, vals1);
+	} // for
+
+	// A permutation experiment with different sizes
+	for (int i = 1; i < 5; i++) {
+	    permutationExperiment(pen, sorter, 
+		    StandardIntegerComparator.comparator,
+		    randomSortedInts(i*10));
+	} // for
     } // experiments(Sorter<Integer>)
 
     /**
      * Run some experiments using a string sorter.
      */
     public static void sExperiments(Sorter<String> sorter) {
-         PrintWriter pen = new PrintWriter(System.out, true);
-         String[] vals1 = new String[] { "a", "b", "b", "f", "g", "g",
-                 "w", "x", "y", "z", "z", "z" };
-         // Five random permutation experiments seems like enough
-         for (int i = 0; i < 5; i++) {
-             permutationExperiment(pen, sorter, 
-                     StandardStringComparator.comparator, vals1);
-         } // for
+	PrintWriter pen = new PrintWriter(System.out, true);
+	String[] vals1 = new String[] { "a", "b", "b", "f", "g", "g",
+		"w", "x", "y", "z", "z", "z" };
+	// Five random permutation experiments seems like enough
+	for (int i = 0; i < 5; i++) {
+	    permutationExperiment(pen, sorter, 
+		    StandardStringComparator.comparator, vals1);
+	} // for
     } // experiments(Sorter<String>)
 } // class Utils

@@ -69,8 +69,10 @@ public class TestUtils {
      * Test all permutations of a simple array of integers.
      */
     public static <T> void test1(Sorter<Integer> sorter) {
+	Utils.setCounter(0);
 	testAllPermutations(sorter, StandardIntegerComparator.comparator,
 		new Integer[] { 0, 1, 1, 2, 4, 7, 9, 11, 13, 13 });
+	System.out.println(Utils.getCounter() + " swaps performed.");
     } // test1
 
     /**
@@ -78,8 +80,10 @@ public class TestUtils {
      */
     public static <T> void test2(Sorter<Integer> sorter) {
 	for (int i = 1; i < 20; i++) {
+	    Utils.setCounter(0);
 	    testOnePermutation(sorter, StandardIntegerComparator.comparator,
 		    Utils.randomSortedInts(i * 20));
+	    System.out.println("n="+ i*20 + ": " + Utils.getCounter() + " swaps performed.");
 	}
     } // test2(Sorter<Integer>)
 

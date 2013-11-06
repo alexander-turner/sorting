@@ -1,7 +1,5 @@
 package edu.grinnell.csc207.sorting;
 
-import static org.junit.Assert.*;
-
 import org.junit.Test;
 
 /**
